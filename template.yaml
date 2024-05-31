@@ -1,9 +1,12 @@
-apiVersion: backstage.io/v1beta2
+apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: app-template
-  title: Demo Application Template
-  description: Demo Application Template
+  name: admin-dashboard-template
+  title: Admin Dashboard Template
+  description: Create a Admin Dashboard Template with Next.js
+  tags:
+    - recommended
+    - react
 spec:
   type: service
   parameters:
@@ -36,16 +39,18 @@ spec:
             allowedHosts:
               - github.com
   steps:
-    - id: fetch-template
-      name: Fetch Template
+    - id: template
+      name: Fetch Skeleton + Template
       action: fetch:template
       input:
-        url: ./app-template
+        url: ./skeleton
+        copyWithoutRender:
+          - .github/workflows/*
         values:
-          application_name: "{{ parameters.application_name }}"
-          description: "{{ parameters.description }}"
-          package_name: "{{ parameters.package_name }}"
-          destination: "{{ parseRepoUrl parameters.repoUrl }}"
+          component_id: ${{ parameters.component_id }}
+          description: ${{ parameters.description }}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          owner: ${{ parameters.owner }}
     - id: publish
       name: Publish
       action: publish:github
