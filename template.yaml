@@ -1,38 +1,29 @@
-apiVersion: scaffolder.backstage.io/v1beta3
+apiVersion: backstage.io/v1beta2
 kind: Template
 metadata:
-  name: admin-dashboard-template
-  title: Admin Dashboard Template
-  description: Create a Admin Dashboard Template with Next.js
-  tags:
-    - recommended
-    - react
+  name: app-template
+  title: Demo Application Template
+  description: Demo Application Template
 spec:
-  owner: web@example.com
-  type: website
+  type: service
   parameters:
-    - title: Provide some simple information
+    - title: Provide Simple Information
       required:
-        - component_id
-        - owner
+        - application_name
+        - package_name
       properties:
-        component_id:
+        application_name:
           title: Name
           type: string
           description: Unique name of the component
-          ui:field: EntityNamePicker
+        package_name:
+          title: Java Package Name
+          type: string
+          description: Name for the java package. eg (io.backstage.blah)
         description:
           title: Description
           type: string
           description: Help others understand what this website is for.
-        owner:
-          title: Owner
-          type: string
-          description: Owner of the component
-          ui:field: OwnerPicker
-          ui:options:
-            allowedKinds:
-              - Group
     - title: Choose a location
       required:
         - repoUrl
@@ -45,38 +36,26 @@ spec:
             allowedHosts:
               - github.com
   steps:
-    - id: template
-      name: Fetch Skeleton + Template
+    - id: fetch-template
+      name: Fetch Template
       action: fetch:template
       input:
-        url: ./skeleton
-        copyWithoutRender:
-          - .github/workflows/*
+        url: ./app-template
         values:
-          component_id: ${{ parameters.component_id }}
-          description: ${{ parameters.description }}
-          destination: ${{ parameters.repoUrl | parseRepoUrl }}
-          owner: ${{ parameters.owner }}
-
+          application_name: "{{ parameters.application_name }}"
+          description: "{{ parameters.description }}"
+          package_name: "{{ parameters.package_name }}"
+          destination: "{{ parseRepoUrl parameters.repoUrl }}"
     - id: publish
       name: Publish
       action: publish:github
       input:
         allowedHosts: ["github.com"]
-        description: This is ${{ parameters.component_id }}
-        repoUrl: ${{ parameters.repoUrl }}
-
+        description: "This is {{ parameters.appliction_name }}"
+        repoUrl: "{{ parameters.repoUrl }}"
     - id: register
       name: Register
       action: catalog:register
       input:
-        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        repoContentsUrl: "{{ steps.publish.output.repoContentsUrl }}"
         catalogInfoPath: "/catalog-info.yaml"
-
-  output:
-    links:
-      - title: Repository
-        url: ${{ steps.publish.output.remoteUrl }}
-      - title: Open in catalog
-        icon: catalog
-        entityRef: ${{ steps.register.output.entityRef }}
