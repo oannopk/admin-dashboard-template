@@ -1,27 +1,27 @@
 apiVersion: scaffolder.backstage.io/v1beta3
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-template
 kind: Template
 metadata:
   name: admin-dashboard-template
   title: Admin Dashboard Template
   description: Create a Admin Dashboard Template with Next.js
-  tags:
-    - recommended
-    - react
 spec:
-  type: service
+  type: website
+
+  # These parameters are used to generate the input form in the frontend, and are
+  # used to gather input data for the execution of the template.
   parameters:
-    - title: Provide Simple Information
+    - title: Fill in some steps
       required:
-        - application_name
+        - name
       properties:
-        application_name:
+        name:
           title: Name
           type: string
           description: Unique name of the component
-        description:
-          title: Description
-          type: string
-          description: Help others understand what this website is for.
+          ui:autofocus: true
+          ui:options:
+            rows: 5
     - title: Choose a location
       required:
         - repoUrl
@@ -33,17 +33,20 @@ spec:
           ui:options:
             allowedHosts:
               - github.com
+
+  # These steps are executed in the scaffolder backend, using data that we gathered
+  # via the parameters above.
   steps:
+    # Each step executes an action, in this case one templates files into the working directory.
     - id: fetch-base
-      name: Fetch Skeleton + Template
+      name: Fetch Base
       action: fetch:template
       input:
         url: ./skeleton
-        copyWithoutRender:
-          - .github/workflows/*
         values:
-          component_id: ${{ parameters.component_id }}
+          name: ${{ parameters.name }}
           description: ${{ parameters.description }}
+
     # This step publishes the contents of the working directory to GitHub.
     - id: publish
       name: Publish
@@ -61,7 +64,7 @@ spec:
         repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
         catalogInfoPath: "/catalog-info.yaml"
 
-    # Outputs are displayed to the user after a successful execution of the template.
+  # Outputs are displayed to the user after a successful execution of the template.
   output:
     links:
       - title: Repository
